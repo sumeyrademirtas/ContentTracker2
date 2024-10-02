@@ -16,6 +16,11 @@ class NewItemController: UIViewController {
         setupSaveButton()
     }
     
+    // Controller acilirken resetItems func calisacak.
+    override func viewWillAppear(_ animated: Bool) {
+        resetItems()
+    }
+    
     // MARK: - UI Setup
 
     private func setupDetailView() {
@@ -33,6 +38,9 @@ class NewItemController: UIViewController {
     private func setupSaveButton() {
         detailView.saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
     }
+    
+    
+    // MARK: - Functions
     
     @objc private func saveButtonTapped() {
         let name = detailView.nameField.text ?? ""
@@ -57,5 +65,12 @@ class NewItemController: UIViewController {
         dismiss(animated: true) {
             NotificationCenter.default.post(name: .reloadTableView, object: nil)
         }
+    }
+    
+    // new item controller icindeki itemlar sifirlanacak. bunu yazmayinca son girilen bilgiler kaliyor.
+    func resetItems() {
+        detailView.nameField.text = ""
+        detailView.noteField.text = ""
+        detailView.categoryPicker.selectRow(0, inComponent: 0, animated: true)
     }
 }
