@@ -40,9 +40,9 @@ class EditMediaView: UIView {
         return picker
     }()
     
-    let saveButton: UIButton = {
+    let updateButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Save", for: .normal)
+        button.setTitle("Update", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         var configuration = UIButton.Configuration.filled()
         button.configuration = configuration
@@ -77,7 +77,7 @@ class EditMediaView: UIView {
     // MARK: - UI Setup
 
     private func setupUI() {
-        let stackView = UIStackView(arrangedSubviews: [categoryPicker, nameField, noteField, saveButton, deleteButton])
+        let stackView = UIStackView(arrangedSubviews: [categoryPicker, nameField, noteField, updateButton, deleteButton])
         addSubview(stackView)
         stackView.axis = .vertical
         stackView.spacing = 30

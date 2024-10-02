@@ -5,8 +5,8 @@
 //  Created by Sümeyra Demirtaş on 10/1/24.
 //
 
-import UIKit
 import CoreData
+import UIKit
 
 class MediaListViewController: UIViewController {
     let newitemVC = NewItemController()
@@ -40,11 +40,16 @@ class MediaListViewController: UIViewController {
       
         NotificationCenter.default.addObserver(self, selector: #selector(didAddNewMediaItem(notification:)), name: .didAddNewMediaItem, object: nil)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(didUpdateMediaItem(notification:)), name: .didUpdateMediaItem, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(didDeleteMediaItem(notification:)), name: .didDeleteMediaItem, object: nil)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .reloadTableView, object: nil)
     }
     
     // MARK: - Functions
     
+    // didAddNewMediaItem
     @objc func didAddNewMediaItem(notification: Notification) {
         guard let userInfo = notification.userInfo,
               let name = userInfo["name"] as? String,
@@ -57,6 +62,36 @@ class MediaListViewController: UIViewController {
         tableView.reloadData()
     }
 
+
+    // didUpdateMediaItem
+    @objc func didUpdateMediaItem(notification: Notification) {
+        print("didUpdateMediaItem fonksiyonu tetiklendi.")
+        guard let userInfo = notification.userInfo,
+              let name = userInfo["name"] as? String,
+              let note = userInfo["note"] as? String,
+              let categoryString = userInfo["category"] as? String,
+              let category = CategoryType(rawValue: categoryString),
+              let itemId = userInfo["id"] as? NSManagedObjectID else { return }
+        
+        let item = context.object(with: itemId) as! MediaListItem
+        updateItem(item: item, newName: name, newNote: note, newCategory: category)
+        reloadTableView()
+
+    }
+    
+    // didDeleteMediaItem
+    @objc func didDeleteMediaItem(notification: Notification) {
+        print("didDeleteMediaItem fonksiyonu tetiklendi.")
+        guard let userInfo = notification.userInfo,
+              let itemId = userInfo["id"] as? NSManagedObjectID else { return }
+        
+        let item = context.object(with: itemId) as! MediaListItem
+        deleteItem(item: item)
+        reloadTableView()
+
+    }
+    
+
     @objc func reloadTableView() {
         getAllItems()
         tableView.reloadData()
@@ -66,8 +101,8 @@ class MediaListViewController: UIViewController {
         print("Add button tapped!")
         showMyViewControllerInACustomizedSheet()
     }
-
     
+
     // - MARK: - CustomizedSheet
     
 //     Add Item
@@ -81,15 +116,16 @@ class MediaListViewController: UIViewController {
     }
     
     // Edit Item
-    func showMyEditItemControllerInACustomizedSheet() {
+    func showMyEditItemControllerInACustomizedSheet(with item: MediaListItem) {
         let viewControllerToPresent = edititemVC
+        
+        edititemVC.selectedItem = item
+        
         if let sheet = viewControllerToPresent.sheetPresentationController {
             sheet.detents = [.medium(), .large()]
         }
         present(viewControllerToPresent, animated: true, completion: nil)
     }
-    
-    
     
     // MARK: - Core Data
     
@@ -133,12 +169,12 @@ class MediaListViewController: UIViewController {
         
         do {
             try context.save()
+            print("media updated")
         }
-        catch {}
+        catch {
+            print("Error received: \(error)")
+        }
     }
-    
-
-
 }
 
 // MARK: - UITableViewDataSource, UITableViewDelegate
@@ -173,17 +209,15 @@ extension MediaListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        showMyEditItemControllerInACustomizedSheet()
+        
+        // usttekiyle ayni mantik
+        let category = CategoryType.allCases[indexPath.section].rawValue
+        let filteredItems = models.filter { $0.category == category }
+        let selectedItem = filteredItems[indexPath.row]
+        
+        showMyEditItemControllerInACustomizedSheet(with: selectedItem)
     }
 }
-
-
-
-
-
-
-
-
 
 //    func deleteAllItems() {
 //        let fetchRequest: NSFetchRequest<MediaListItem> = MediaListItem.fetchRequest()

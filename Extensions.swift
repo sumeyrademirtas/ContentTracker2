@@ -15,3 +15,11 @@ extension Notification.Name {
 extension Notification.Name {
     static let reloadTableView = Notification.Name("reloadTableView")
 }
+
+extension Notification.Name {
+    static let didUpdateMediaItem = Notification.Name("didUpdateMediaItem")
+}
+
+extension Notification.Name {
+    static let didDeleteMediaItem = Notification.Name("didDeleteMediaItem")
+}
