@@ -10,13 +10,13 @@ import CoreData
 
 class MediaListViewController: UIViewController {
     let newitemVC = NewItemController()
+    let edititemVC = EditItemController()
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext // Core Data islemlerini yapabilmek icin viewContext i aliyoruz.
     
     let tableView: UITableView = {
         let table = UITableView()
         table.register(UITableViewCell.self, forCellReuseIdentifier: "MediaItemCell")
-        
         return table
     }()
     
@@ -32,7 +32,8 @@ class MediaListViewController: UIViewController {
         tableView.dataSource = self
         tableView.frame = view.bounds
         
-        getAllItems()
+        reloadTableView()
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
                                                             target: self,
                                                             action: #selector(addButtonTapped))
@@ -66,7 +67,11 @@ class MediaListViewController: UIViewController {
         showMyViewControllerInACustomizedSheet()
     }
 
-    // In a subclass of UIViewController, customize and present the sheet.
+    
+    // - MARK: - CustomizedSheet
+    
+//     Add Item
+//     In a subclass of UIViewController, customize and present the sheet.
     func showMyViewControllerInACustomizedSheet() {
         let viewControllerToPresent = newitemVC
         if let sheet = viewControllerToPresent.sheetPresentationController {
@@ -74,6 +79,17 @@ class MediaListViewController: UIViewController {
         }
         present(viewControllerToPresent, animated: true, completion: nil)
     }
+    
+    // Edit Item
+    func showMyEditItemControllerInACustomizedSheet() {
+        let viewControllerToPresent = edititemVC
+        if let sheet = viewControllerToPresent.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+        }
+        present(viewControllerToPresent, animated: true, completion: nil)
+    }
+    
+    
     
     // MARK: - Core Data
     
@@ -121,23 +137,7 @@ class MediaListViewController: UIViewController {
         catch {}
     }
     
-//    func deleteAllItems() {
-//        let fetchRequest: NSFetchRequest<MediaListItem> = MediaListItem.fetchRequest()
-//        
-//        do {
-//            let items = try context.fetch(fetchRequest)
-//            
-//            for item in items {
-//                context.delete(item)
-//            }
-//            
-//            try context.save()
-//            print("Tüm veriler başarıyla silindi.")
-//            
-//        } catch {
-//            print("Veriler silinirken bir hata oluştu: \(error)")
-//        }
-//    }
+
 
 }
 
@@ -170,4 +170,35 @@ extension MediaListViewController: UITableViewDataSource, UITableViewDelegate {
             
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        showMyEditItemControllerInACustomizedSheet()
+    }
 }
+
+
+
+
+
+
+
+
+
+//    func deleteAllItems() {
+//        let fetchRequest: NSFetchRequest<MediaListItem> = MediaListItem.fetchRequest()
+//
+//        do {
+//            let items = try context.fetch(fetchRequest)
+//
+//            for item in items {
+//                context.delete(item)
+//            }
+//
+//            try context.save()
+//            print("Tüm veriler başarıyla silindi.")
+//
+//        } catch {
+//            print("Veriler silinirken bir hata oluştu: \(error)")
+//        }
+//    }
