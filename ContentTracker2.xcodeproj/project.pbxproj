@@ -34,9 +34,9 @@
 			path = ContentTracker2;
 			sourceTree = "<group>";
 		};
-		81F4D25C2CABFBA000E27297 /* MediaListItem */ = {
+		81F4D25C2CABFBA000E27297 /* MediaListItem CoreData */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MediaListItem;
+			path = "MediaListItem CoreData";
 			sourceTree = "<group>";
 		};
 		81F4D27D2CABFF9500E27297 /* Controllers */ = {
@@ -74,7 +74,7 @@
 				81F4D2AA2CAC1F0900E27297 /* View */,
 				81F4D2812CAC101400E27297 /* Models */,
 				81F4D27D2CABFF9500E27297 /* Controllers */,
-				81F4D25C2CABFBA000E27297 /* MediaListItem */,
+				81F4D25C2CABFBA000E27297 /* MediaListItem CoreData */,
 				81F4D2082CABDE8900E27297 /* ContentTracker2 */,
 				81F4D2072CABDE8900E27297 /* Products */,
 			);
@@ -105,7 +105,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				81F4D2082CABDE8900E27297 /* ContentTracker2 */,
-				81F4D25C2CABFBA000E27297 /* MediaListItem */,
+				81F4D25C2CABFBA000E27297 /* MediaListItem CoreData */,
 				81F4D27D2CABFF9500E27297 /* Controllers */,
 				81F4D2812CAC101400E27297 /* Models */,
 				81F4D2AA2CAC1F0900E27297 /* View */,

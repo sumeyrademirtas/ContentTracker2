@@ -9,6 +9,16 @@ import CoreData
 import UIKit
 
 class MediaListViewController: UIViewController {
+    // MARK: - Properties
+    
+    private var filteredItems = [MediaListItem]()
+    
+    private let searchController = UISearchController(searchResultsController: nil)
+    
+    private var inSearchMode: Bool {
+        return searchController.isActive && !searchController.searchBar.text!.isEmpty
+    }
+    
     let newitemVC = NewItemController()
     let edititemVC = EditItemController()
     
@@ -22,11 +32,13 @@ class MediaListViewController: UIViewController {
     
     private var models = [MediaListItem]()
 
+    // MARK: Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureSearchController()
         view.backgroundColor = .systemBackground
         title = "Content Tracker"
-        
         view.addSubview(tableView)
         tableView.delegate = self
         tableView.dataSource = self
@@ -49,6 +61,17 @@ class MediaListViewController: UIViewController {
     
     // MARK: - Functions
     
+    // configureSearchController
+    private func configureSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.placeholder = "Search"
+        navigationItem.searchController = searchController
+        definesPresentationContext = false
+        navigationItem.hidesSearchBarWhenScrolling = false
+    }
+    
     // didAddNewMediaItem
     @objc func didAddNewMediaItem(notification: Notification) {
         guard let userInfo = notification.userInfo,
@@ -61,7 +84,6 @@ class MediaListViewController: UIViewController {
         createItem(name: name, note: note, category: category)
         tableView.reloadData()
     }
-
 
     // didUpdateMediaItem
     @objc func didUpdateMediaItem(notification: Notification) {
@@ -76,7 +98,6 @@ class MediaListViewController: UIViewController {
         let item = context.object(with: itemId) as! MediaListItem
         updateItem(item: item, newName: name, newNote: note, newCategory: category)
         reloadTableView()
-
     }
     
     // didDeleteMediaItem
@@ -88,10 +109,8 @@ class MediaListViewController: UIViewController {
         let item = context.object(with: itemId) as! MediaListItem
         deleteItem(item: item)
         reloadTableView()
-
     }
     
-
     @objc func reloadTableView() {
         getAllItems()
         tableView.reloadData()
@@ -102,7 +121,6 @@ class MediaListViewController: UIViewController {
         showMyViewControllerInACustomizedSheet()
     }
     
-
     // - MARK: - CustomizedSheet
     
 //     Add Item
@@ -181,7 +199,9 @@ class MediaListViewController: UIViewController {
 
 extension MediaListViewController: UITableViewDataSource, UITableViewDelegate {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return CategoryType.allCases.count
+        return inSearchMode ? filteredItems.count : CategoryType.allCases.count // ONEMLI:filteredItems.count ta patliyor sanirim. filtrelemeyi duzgun yapiyor gosterimi yapamiyor
+                
+//        return CategoryType.allCases.count
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -189,6 +209,7 @@ extension MediaListViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
         let category = CategoryType.allCases[section].rawValue // sectiona karsilik gelen kategoriyi belirliyoruz
         return models.filter { $0.category == category }.count // media itemlari tek tek alip filtreliyoruz. eger ustteki kategori ile item kategorisi eslesirse diziye ekliyoruz. sonra da toplam sayisini aliyoruz.
     }
@@ -197,6 +218,8 @@ extension MediaListViewController: UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MediaItemCell", for: indexPath)
             
         let category = CategoryType.allCases[indexPath.section].rawValue // section kategorisini belirliyoruz.
+        
+        
 //        let filteredItems = models.filter { mediaItem in
 //                return mediaItem.category == currentCategory
 //            }
@@ -218,6 +241,51 @@ extension MediaListViewController: UITableViewDataSource, UITableViewDelegate {
         showMyEditItemControllerInACustomizedSheet(with: selectedItem)
     }
 }
+
+
+
+
+extension MediaListViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let searchText = searchController.searchBar.text?.lowercased(), !searchText.isEmpty else {
+            filteredItems = models // Eğer arama metni boşsa tüm öğeleri gösteriyoruz
+            tableView.reloadData()
+            return
+        }
+            
+//      Filtreleme 
+        filteredItems = models.filter {
+            let name = $0.name?.lowercased() ?? ""
+            let category = $0.category?.lowercased() ?? ""
+            
+            return name.contains(searchText) || category.contains(searchText)
+        }
+        
+//        filteredItems = models.filter ({
+//            (($0.name?.contains(searchText)) != nil) ||
+//            (($0.category?.contains(searchText)) != nil)})
+            
+        print("DEBuG: Filtered items \(filteredItems)")
+        tableView.reloadData()
+    }
+}
+
+
+//extension MediaListViewController: UISearchResultsUpdating {
+//    func updateSearchResults(for searchController: UISearchController) {
+//        guard let searchText = searchController.searchBar.text?.lowercased() else { return }
+//
+//        filteredItems = models.filter {
+//            $0.name!.contains(searchText) ||
+//                $0.category!.lowercased().contains(searchText)
+//        }
+//
+//        print("DEBuG: Filtered users \(filteredItems)")
+//        tableView.reloadData()
+//    }
+//}
+
+
 
 //    func deleteAllItems() {
 //        let fetchRequest: NSFetchRequest<MediaListItem> = MediaListItem.fetchRequest()
