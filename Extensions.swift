@@ -8,6 +8,7 @@
 
 import Foundation
 
+// bu extensionlar biraz deneme amacli oldu, bence cok da gerekli degildi
 extension Notification.Name {
     static let didAddNewMediaItem = Notification.Name("didAddNewMediaItem")
 }

@@ -12,7 +12,8 @@ class MediaListViewController: UIViewController {
     // MARK: - Properties
     
     private var filteredItems = [MediaListItem]()
-    
+    private var filteredSections: [CategoryType] = []
+
     private let searchController = UISearchController(searchResultsController: nil)
     
     private var inSearchMode: Bool {
@@ -199,34 +200,45 @@ class MediaListViewController: UIViewController {
 
 extension MediaListViewController: UITableViewDataSource, UITableViewDelegate {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return inSearchMode ? filteredItems.count : CategoryType.allCases.count // ONEMLI:filteredItems.count ta patliyor sanirim. filtrelemeyi duzgun yapiyor gosterimi yapamiyor
-                
-//        return CategoryType.allCases.count
+        return inSearchMode ? filteredSections.count : CategoryType.allCases.count // ONEMLI:filteredItems.count ta patliyor sanirim. filtrelemeyi duzgun yapiyor gosterimi yapamiyor
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return CategoryType.allCases[section].rawValue // enumdan tum case leri aliyor, her section ile case id yi eslestirip case in raw value sunu headerin title ina veriyor
+        if inSearchMode {
+            return filteredSections[section].rawValue
+        }
+        else {
+            return CategoryType.allCases[section].rawValue
+        }
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        let category = CategoryType.allCases[section].rawValue // sectiona karsilik gelen kategoriyi belirliyoruz
-        return models.filter { $0.category == category }.count // media itemlari tek tek alip filtreliyoruz. eger ustteki kategori ile item kategorisi eslesirse diziye ekliyoruz. sonra da toplam sayisini aliyoruz.
+        if inSearchMode {
+            let category = filteredSections[section].rawValue
+            return filteredItems.filter { $0.category == category }.count
+        }
+        else {
+            let category = CategoryType.allCases[section].rawValue
+            return models.filter { $0.category == category }.count
+        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MediaItemCell", for: indexPath)
             
-        let category = CategoryType.allCases[indexPath.section].rawValue // section kategorisini belirliyoruz.
-        
-        
-//        let filteredItems = models.filter { mediaItem in
-//                return mediaItem.category == currentCategory
-//            }
-        let filteredItems = models.filter { $0.category == category } // ustteki kategori ile item kategorisi eslesenleri diziye ekliyoruz.
-        let mediaItem = filteredItems[indexPath.row] // satira denk gelen filtrelenmis item i aliyoruz
-        cell.textLabel?.text = mediaItem.name // sonra da ismini yazdiriyoruz
-            
+        if inSearchMode {
+            let category = filteredSections[indexPath.section].rawValue
+            let filteredCategoryItems = filteredItems.filter { $0.category == category }
+            let mediaItem = filteredCategoryItems[indexPath.row]
+            cell.textLabel?.text = mediaItem.name
+        }
+        else {
+            let category = CategoryType.allCases[indexPath.section].rawValue
+            let filteredItems = models.filter { $0.category == category }
+            let mediaItem = filteredItems[indexPath.row]
+            cell.textLabel?.text = mediaItem.name
+        }
+
         return cell
     }
     
@@ -242,65 +254,28 @@ extension MediaListViewController: UITableViewDataSource, UITableViewDelegate {
     }
 }
 
-
-
-
 extension MediaListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         guard let searchText = searchController.searchBar.text?.lowercased(), !searchText.isEmpty else {
             filteredItems = models // Eğer arama metni boşsa tüm öğeleri gösteriyoruz
+            filteredSections = [] // Eğer arama yapılmıyorsa tüm kategorileri göster
             tableView.reloadData()
             return
         }
             
-//      Filtreleme 
+//      Filtreleme
         filteredItems = models.filter {
             let name = $0.name?.lowercased() ?? ""
-            let category = $0.category?.lowercased() ?? ""
             
-            return name.contains(searchText) || category.contains(searchText)
+            return name.contains(searchText)
         }
         
-//        filteredItems = models.filter ({
-//            (($0.name?.contains(searchText)) != nil) ||
-//            (($0.category?.contains(searchText)) != nil)})
-            
+        // Filtrelenmiş öğelerin kategorilerini bulalım
+        filteredSections = Array(Set(filteredItems.compactMap { item in
+            CategoryType(rawValue: item.category ?? "")
+        }))
+        
         print("DEBuG: Filtered items \(filteredItems)")
         tableView.reloadData()
     }
 }
-
-
-//extension MediaListViewController: UISearchResultsUpdating {
-//    func updateSearchResults(for searchController: UISearchController) {
-//        guard let searchText = searchController.searchBar.text?.lowercased() else { return }
-//
-//        filteredItems = models.filter {
-//            $0.name!.contains(searchText) ||
-//                $0.category!.lowercased().contains(searchText)
-//        }
-//
-//        print("DEBuG: Filtered users \(filteredItems)")
-//        tableView.reloadData()
-//    }
-//}
-
-
-
-//    func deleteAllItems() {
-//        let fetchRequest: NSFetchRequest<MediaListItem> = MediaListItem.fetchRequest()
-//
-//        do {
-//            let items = try context.fetch(fetchRequest)
-//
-//            for item in items {
-//                context.delete(item)
-//            }
-//
-//            try context.save()
-//            print("Tüm veriler başarıyla silindi.")
-//
-//        } catch {
-//            print("Veriler silinirken bir hata oluştu: \(error)")
-//        }
-//    }
